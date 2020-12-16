@@ -1,4 +1,7 @@
 # mips default CPU ISAs
+config BR2_MIPS_CPU_MIPSII
+	bool
+	select BR2_MIPS_NAN_LEGACY
 config BR2_MIPS_CPU_MIPS32
 	bool
 	select BR2_MIPS_NAN_LEGACY
@@ -15,6 +18,9 @@ config BR2_MIPS_CPU_MIPS32R6
 	bool
 	select BR2_MIPS_NAN_2008
 	select BR2_ARCH_NEEDS_GCC_AT_LEAST_5
+config BR2_MIPS_CPU_MIPSIII
+	bool
+	select BR2_MIPS_NAN_LEGACY
 config BR2_MIPS_CPU_MIPS64
 	bool
 	select BR2_MIPS_NAN_LEGACY
@@ -40,9 +46,13 @@ choice
 	help
 	  Specific CPU variant to use
 
-	  64bit capable: 64, 64r2, 64r3, 64r5, 64r6
-	  non-64bit capable: 32, 32r2, 32r3, 32r5, 32r6
+	  64bit capable: III, 64, 64r2, 64r3, 64r5, 64r6
+	  non-64bit capable: II, 32, 32r2, 32r3, 32r5, 32r6
 
+config BR2_mips_ii
+	bool "Generic MIPS-II"
+	depends on !BR2_ARCH_IS_64
+	select BR2_MIPS_CPU_MIPSII
 config BR2_mips_32
 	bool "Generic MIPS32"
 	depends on !BR2_ARCH_IS_64
@@ -97,6 +107,10 @@ config BR2_mips_xburst
 	  to be used in order to prevent emitting these instructions.
 
 	  See http://www.ingenic.com/en/?xburst.html
+config BR2_mips_iii
+	bool "Generic MIPS-III"
+	depends on BR2_ARCH_IS_64
+	select BR2_MIPS_CPU_MIPSIII
 config BR2_mips_64
 	bool "Generic MIPS64"
 	depends on BR2_ARCH_IS_64
@@ -240,6 +254,7 @@ config BR2_ENDIAN
 	default "BIG"		if BR2_mips || BR2_mips64
 
 config BR2_GCC_TARGET_ARCH
+	default "mips2"	    if BR2_mips_ii
 	default "mips32"	if BR2_mips_32
 	default "mips32r2"	if BR2_mips_32r2
 	default "mips32r3"	if BR2_mips_32r3
@@ -250,6 +265,7 @@ config BR2_GCC_TARGET_ARCH
 	default "m6201"		if BR2_mips_m6250
 	default "p5600"		if BR2_mips_p5600
 	default "mips32r2"	if BR2_mips_xburst
+	default "mips3"	    if BR2_mips_iii
 	default "mips64"	if BR2_mips_64
 	default "mips64r2"	if BR2_mips_64r2
 	default "mips64r3"	if BR2_mips_64r3
