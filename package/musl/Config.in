@@ -30,6 +30,9 @@ config BR2_PACKAGE_MUSL_SUPPORTS
 	bool
 	default y if BR2_PACKAGE_MUSL_ARCH_SUPPORTS
 
+config BR2_PACKAGE_MUSL_HEADERS
+	bool
+
 config BR2_PACKAGE_MUSL
 	bool
 	default y

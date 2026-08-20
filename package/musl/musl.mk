@@ -79,3 +79,5 @@ define MUSL_INSTALL_TARGET_CMDS
 endef
 
 $(eval $(generic-package))
+
+include $(sort $(wildcard package/musl/*/*.mk))
