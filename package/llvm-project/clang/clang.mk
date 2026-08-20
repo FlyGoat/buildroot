@@ -114,6 +114,23 @@ CLANG_CONF_OPTS += -DLLVM_DYLIB_COMPONENTS=all
 # python bindings unconditionally:
 HOST_CLANG_CONF_OPTS += -DCLANG_PYTHON_BINDINGS_VERSIONS=$(PYTHON3_VERSION_MAJOR)
 
+ifeq ($(BR2_TOOLCHAIN_BUILDROOT_LLVM),y)
+HOST_CLANG_CONF_OPTS += \
+	-DCLANG_DEFAULT_CXX_STDLIB=libc++ \
+	-DCLANG_DEFAULT_RTLIB=compiler-rt \
+	-DCLANG_DEFAULT_UNWINDLIB=libunwind
+
+define HOST_CLANG_INSTALL_BUILDROOT_CONFIG_FILE
+	mkdir -p $(HOST_DIR)/lib/clang/$(CLANG_VERSION_MAJOR)
+	echo "--target=$(GNU_TARGET_NAME)" \
+		> $(HOST_DIR)/lib/clang/$(CLANG_VERSION_MAJOR)/$(GNU_TARGET_NAME).cfg
+endef
+
+HOST_CLANG_TOOLCHAIN_WRAPPER_ARGS += \
+	-DBR_CLANG_CONFIG_FILE="\"--config=$(HOST_DIR)/lib/clang/$(CLANG_VERSION_MAJOR)/$(GNU_TARGET_NAME).cfg\""
+HOST_CLANG_POST_INSTALL_HOOKS += HOST_CLANG_INSTALL_BUILDROOT_CONFIG_FILE
+endif
+
 # Help host-clang to find our external toolchain, use a relative path from the clang
 # installation directory to the external toolchain installation directory in order to
 # not hardcode the toolchain absolute path.
@@ -130,14 +147,42 @@ endif
 
 define HOST_CLANG_INSTALL_WRAPPER_AND_SIMPLE_SYMLINKS
 	$(Q)cd $(HOST_DIR)/bin; \
-	rm -f clang-$(CLANG_VERSION_MAJOR).br_real; \
-	mv clang-$(CLANG_VERSION_MAJOR) clang-$(CLANG_VERSION_MAJOR).br_real; \
+	$(INSTALL) -m 0755 $(HOST_CLANG_BUILDDIR)/bin/clang-$(CLANG_VERSION_MAJOR) \
+		clang-$(CLANG_VERSION_MAJOR).br_real; \
 	ln -sf toolchain-wrapper-clang clang-$(CLANG_VERSION_MAJOR); \
 	for i in clang clang++ clang-cl clang-cpp; do \
 		ln -snf toolchain-wrapper-clang $$i; \
 		ln -snf clang-$(CLANG_VERSION_MAJOR).br_real $$i.br_real; \
 	done
 endef
+
+ifeq ($(BR2_TOOLCHAIN_BUILDROOT_LLVM),y)
+define HOST_CLANG_INSTALL_CROSS_SYMLINKS
+	$(Q)cd $(HOST_DIR)/bin; \
+	for i in clang clang++ clang-cpp; do \
+		ln -snf toolchain-wrapper-clang $(GNU_TARGET_NAME)-$$i; \
+		ln -snf clang-$(CLANG_VERSION_MAJOR).br_real $(GNU_TARGET_NAME)-$$i.br_real; \
+	done; \
+	for i in gcc cc; do \
+		ln -snf toolchain-wrapper-clang $(GNU_TARGET_NAME)-$$i; \
+		ln -snf clang-$(CLANG_VERSION_MAJOR).br_real $(GNU_TARGET_NAME)-$$i.br_real; \
+	done; \
+	for i in g++ c++; do \
+		ln -snf toolchain-wrapper-clang $(GNU_TARGET_NAME)-$$i; \
+		ln -snf clang-$(CLANG_VERSION_MAJOR).br_real $(GNU_TARGET_NAME)-$$i.br_real; \
+	done; \
+	ln -snf toolchain-wrapper-clang $(GNU_TARGET_NAME)-cpp; \
+	ln -snf clang-$(CLANG_VERSION_MAJOR).br_real $(GNU_TARGET_NAME)-cpp.br_real; \
+	rm -f $(GNU_TARGET_NAME)-as $(GNU_TARGET_NAME)-as.br_real; \
+	ln -snf lld $(GNU_TARGET_NAME)-ld; \
+	ln -snf lld $(GNU_TARGET_NAME)-ld.lld; \
+	for i in ar nm objcopy objdump ranlib readelf size strings strip; do \
+		ln -snf llvm-$$i $(GNU_TARGET_NAME)-$$i; \
+	done
+endef
+
+HOST_CLANG_POST_INSTALL_HOOKS += HOST_CLANG_INSTALL_CROSS_SYMLINKS
+endif
 
 define HOST_CLANG_TOOLCHAIN_WRAPPER_BUILD
 	$(HOSTCC) $(HOST_CFLAGS) $(TOOLCHAIN_WRAPPER_ARGS) \
