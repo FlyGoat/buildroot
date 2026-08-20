@@ -180,8 +180,17 @@ endif
 # abusing those aliases for system call entry points, in order to
 # sanitize the arguments passed from user space in registers.
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82435
-ifeq ($(BR2_TOOLCHAIN_GCC_AT_LEAST_8),y)
+ifeq ($(BR2_TOOLCHAIN_USES_GCC):$(BR2_TOOLCHAIN_GCC_AT_LEAST_8),y:y)
 LINUX_CFLAGS += -Wno-attribute-alias
+endif
+
+# The toolchain wrapper does not get along with ClangBuiltLinux, so use the
+# real compiler directly. Kbuild supplies Clang's target through CROSS_COMPILE.
+ifeq ($(BR2_TOOLCHAIN_USES_LLVM),y)
+LINUX_MAKE_FLAGS += \
+	LLVM=1 \
+	LLVM_IAS=1 \
+	CC=clang.br_real
 endif
 
 # Disable FDPIC if enabled by default in toolchain
