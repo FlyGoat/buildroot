@@ -179,7 +179,13 @@ TARGET_LDFLAGS = $(call qstrip,$(BR2_TARGET_LDFLAGS))
 # "-z" to be passed and the "text" keyword to be dropped otherwise. Both
 # gcc and ld supports that, so it probably won't cause us problems.
 ifeq ($(BR2_TOOLCHAIN_USES_MUSL):$(BR2_STATIC_LIBS),y:)
+ifeq ($(BR2_TOOLCHAIN_USES_GCC),y)
 TARGET_LDFLAGS += -ztext
+else
+# -ztext is not supported by clang, we have to use
+# -Wl,-z,text instead.
+TARGET_LDFLAGS += -Wl,-z,text
+endif
 endif
 
 # By design, _FORTIFY_SOURCE requires gcc optimization to be enabled.
@@ -226,6 +232,8 @@ TARGET_FCFLAGS += $(ELF2FLT_FLAGS)
 TARGET_LDFLAGS += $(ELF2FLT_FLAGS)
 endif
 
+ifeq ($(BR2_TOOLCHAIN_USES_GCC),y)
+
 ifeq ($(BR2_TOOLCHAIN_BUILDROOT),y)
 TARGET_CROSS = $(HOST_DIR)/bin/$(GNU_TARGET_NAME)-
 else
@@ -252,6 +260,24 @@ TARGET_RANLIB   = $(TARGET_CROSS)$(TARGET_GCC_WRAPPERS_PREFIX)ranlib
 TARGET_READELF  = $(TARGET_CROSS)readelf
 TARGET_OBJCOPY  = $(TARGET_CROSS)objcopy
 TARGET_OBJDUMP  = $(TARGET_CROSS)objdump
+endif
+
+ifeq ($(BR2_TOOLCHAIN_USES_LLVM),y)
+TARGET_CROSS = $(HOST_DIR)/bin/$(GNU_TARGET_NAME)-
+
+TARGET_AR       = $(TARGET_CROSS)ar
+TARGET_AS       = $(TARGET_CROSS)clang -Wno-unused-command-line-argument -c -x assembler
+TARGET_CC       = $(TARGET_CROSS)clang
+TARGET_CPP      = $(TARGET_CROSS)clang -E
+TARGET_CXX      = $(TARGET_CROSS)clang++
+TARGET_FC       = $(TARGET_CROSS)flang
+TARGET_LD       = $(TARGET_CROSS)ld
+TARGET_NM       = $(TARGET_CROSS)nm
+TARGET_RANLIB   = $(TARGET_CROSS)ranlib
+TARGET_READELF  = $(TARGET_CROSS)readelf
+TARGET_OBJCOPY  = $(TARGET_CROSS)objcopy
+TARGET_OBJDUMP  = $(TARGET_CROSS)objdump
+endif
 
 ifeq ($(BR2_STRIP_strip),y)
 STRIP_STRIP_DEBUG := --strip-debug
