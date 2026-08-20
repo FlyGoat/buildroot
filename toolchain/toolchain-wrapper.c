@@ -93,6 +93,17 @@ static char *predef_args[] = {
 #endif
 };
 
+#ifdef BR_CLANG_CONFIG_FILE
+static bool string_ends_with(const char *string, const char *suffix)
+{
+	size_t string_len = strlen(string);
+	size_t suffix_len = strlen(suffix);
+
+	return string_len >= suffix_len &&
+		!strcmp(string + string_len - suffix_len, suffix);
+}
+#endif
+
 /* A {string,length} tuple, to avoid computing strlen() on constants.
  *  - str must be a \0-terminated string
  *  - len does not account for the terminating '\0'
@@ -357,6 +368,22 @@ int main(int argc, char **argv)
 		if (found_nonoption || strncmp(predef_args[i], "-Wl,", strlen("-Wl,")))
 			*cur++ = predef_args[i];
 	}
+
+#ifdef BR_CLANG_CONFIG_FILE
+	/* The real compiler has a .br_real suffix, so clang cannot infer its
+	 * driver mode from argv[0]. Preserve the mode selected by the wrapper
+	 * name instead.
+	 */
+	if (string_ends_with(basename, "clang++") ||
+	    string_ends_with(basename, "g++") ||
+	    string_ends_with(basename, "c++"))
+		*cur++ = "--driver-mode=g++";
+	else if (string_ends_with(basename, "clang-cl"))
+		*cur++ = "--driver-mode=cl";
+	else if (string_ends_with(basename, "clang-cpp") ||
+		 string_ends_with(basename, "cpp"))
+		*cur++ = "--driver-mode=cpp";
+#endif
 
 #ifdef BR_FLOAT_ABI
 	/* add float abi if not overridden in args */
