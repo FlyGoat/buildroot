@@ -2268,6 +2268,7 @@ endif
 	source "package/liquid-dsp/Config.in"
 	source "package/llama-cpp/Config.in"
 	source "package/llvm-project/llvm/Config.in"
+	source "package/llvm-project/llvm-runtimes/Config.in"
 	source "package/lttng-libust/Config.in"
 	source "package/matio/Config.in"
 	source "package/mpc/Config.in"

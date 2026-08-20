@@ -1,0 +1,47 @@
+config BR2_PACKAGE_LLVM_RUNTIMES_SUPPORTS
+	bool
+	default y if BR2_ARCH_HAS_TOOLCHAIN_BUILDROOT_LLVM
+	depends on BR2_HOST_GCC_AT_LEAST_7 # host-clang
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	depends on BR2_USE_WCHAR
+
+config BR2_PACKAGE_LLVM_RUNTIMES
+	bool
+	depends on BR2_PACKAGE_LLVM_RUNTIMES_SUPPORTS
+	select BR2_HOST_CMAKE_AT_LEAST_3_20
+
+if BR2_PACKAGE_LLVM_RUNTIMES_SUPPORTS
+
+config BR2_PACKAGE_LLVM_RUNTIMES_COMPILER_RT
+	bool "compiler-rt"
+	select BR2_PACKAGE_LLVM_RUNTIMES
+	help
+	  Build the compiler-rt builtins and runtime libraries.
+
+config BR2_PACKAGE_LLVM_RUNTIMES_LIBUNWIND
+	bool "LLVM libunwind"
+	select BR2_PACKAGE_LLVM_RUNTIMES
+	select BR2_PACKAGE_LLVM_RUNTIMES_COMPILER_RT
+	help
+	  Build the LLVM unwinder.
+
+config BR2_PACKAGE_LLVM_RUNTIMES_LIBCXXABI
+	bool "libc++abi"
+	select BR2_PACKAGE_LLVM_RUNTIMES
+	select BR2_PACKAGE_LLVM_RUNTIMES_LIBUNWIND
+	help
+	  Build the LLVM C++ ABI library.
+
+config BR2_PACKAGE_LLVM_RUNTIMES_LIBCXX
+	bool "libc++"
+	select BR2_PACKAGE_LLVM_RUNTIMES
+	select BR2_PACKAGE_LLVM_RUNTIMES_LIBCXXABI
+	help
+	  Build the LLVM C++ standard library.
+
+endif
+
+comment "LLVM runtimes need a supported architecture, wchar, threads, and host gcc >= 7"
+	depends on !BR2_ARCH_HAS_TOOLCHAIN_BUILDROOT_LLVM || \
+		!BR2_HOST_GCC_AT_LEAST_7 || \
+		!BR2_TOOLCHAIN_HAS_THREADS || !BR2_USE_WCHAR
