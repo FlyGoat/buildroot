@@ -6,6 +6,12 @@ config BR2_TOOLCHAIN
 	bool
 	default y
 
+config BR2_TOOLCHAIN_USES_GCC
+	bool
+
+config BR2_TOOLCHAIN_USES_LLVM
+	bool
+
 # Should be selected for glibc or eglibc
 config BR2_TOOLCHAIN_USES_GLIBC
 	bool
@@ -48,9 +54,11 @@ choice
 config BR2_TOOLCHAIN_BUILDROOT
 	bool "Buildroot toolchain"
 	depends on BR2_ARCH_HAS_TOOLCHAIN_BUILDROOT
+	select BR2_TOOLCHAIN_USES_GCC
 
 config BR2_TOOLCHAIN_EXTERNAL
 	bool "External toolchain"
+	select BR2_TOOLCHAIN_USES_GCC
 	help
 	  Select if you want to use an existing cross-compiling
 	  toolchain. Buildroot can either download automatically a
@@ -855,6 +863,7 @@ config BR2_TOOLCHAIN_GCC_AT_LEAST_15
 
 config BR2_TOOLCHAIN_GCC_AT_LEAST_16
 	bool
+	default y if !BR2_TOOLCHAIN_USES_GCC
 	select BR2_TOOLCHAIN_GCC_AT_LEAST_15
 
 # This order guarantees that the highest version is set, as kconfig
@@ -880,6 +889,14 @@ config BR2_TOOLCHAIN_GCC_AT_LEAST
 	default "4.5"	if BR2_TOOLCHAIN_GCC_AT_LEAST_4_5
 	default "4.4"	if BR2_TOOLCHAIN_GCC_AT_LEAST_4_4
 	default "4.3"	if BR2_TOOLCHAIN_GCC_AT_LEAST_4_3
+
+config BR2_TOOLCHAIN_CLANG_AT_LEAST_22
+	bool
+	default y if !BR2_TOOLCHAIN_USES_LLVM
+
+config BR2_TOOLCHAIN_CLANG_AT_LEAST
+	string
+	default "22" if BR2_TOOLCHAIN_CLANG_AT_LEAST_22
 
 config BR2_TOOLCHAIN_HAS_MNAN_OPTION
 	bool
