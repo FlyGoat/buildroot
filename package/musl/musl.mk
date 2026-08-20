@@ -10,16 +10,12 @@ MUSL_LICENSE = MIT
 MUSL_LICENSE_FILES = COPYRIGHT
 MUSL_CPE_ID_VENDOR = musl-libc
 
-# Before musl is configured, we must have the first stage
-# cross-compiler and the kernel headers
-MUSL_DEPENDENCIES = host-gcc-initial linux-headers
-
-# musl does not provide an implementation for sys/queue.h or sys/cdefs.h.
-# So, add the musl-compat-headers package that will install those files,
-# into the staging directory:
-#   sys/queue.h:  header from NetBSD
-#   sys/cdefs.h:  minimalist header bundled in Buildroot
-MUSL_DEPENDENCIES += musl-compat-headers
+MUSL_DEPENDENCIES = linux-headers musl-compat-headers
+ifeq ($(BR2_TOOLCHAIN_USES_LLVM),y)
+MUSL_DEPENDENCIES += llvm-runtimes-initial
+else
+MUSL_DEPENDENCIES += host-gcc-initial
+endif
 
 # musl is part of the toolchain so disable the toolchain dependency
 MUSL_ADD_TOOLCHAIN_DEPENDENCY = NO
