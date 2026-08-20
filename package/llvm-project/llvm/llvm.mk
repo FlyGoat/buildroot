@@ -53,6 +53,12 @@ LLVM_TARGETS_TO_BUILD = RISCV
 else
 LLVM_TARGETS_TO_BUILD = $(LLVM_TARGET_ARCH)
 endif
+
+# AArch64 Linux can build an AArch32 compatibility vDSO with Clang.
+ifeq ($(BR2_aarch64),y)
+LLVM_TARGETS_TO_BUILD += ARM
+endif
+
 HOST_LLVM_CONF_OPTS += -DLLVM_TARGETS_TO_BUILD="$(subst $(space),;,$(LLVM_TARGETS_TO_BUILD))"
 LLVM_CONF_OPTS += -DLLVM_TARGETS_TO_BUILD="$(subst $(space),;,$(LLVM_TARGETS_TO_BUILD))"
 

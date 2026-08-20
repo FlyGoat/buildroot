@@ -53,6 +53,7 @@ config BR2_armeb
 
 config BR2_aarch64
 	bool "AArch64 (little endian)"
+	select BR2_ARCH_HAS_TOOLCHAIN_BUILDROOT_LLVM
 	select BR2_ARCH_IS_64
 	help
 	  Aarch64 is a 64-bit architecture developed by ARM Holdings.
@@ -79,6 +80,7 @@ config BR2_hppa
 
 config BR2_i386
 	bool "i386"
+	select BR2_ARCH_HAS_TOOLCHAIN_BUILDROOT_LLVM
 	select BR2_USE_MMU
 	help
 	  Intel i386 architecture compatible microprocessor
@@ -259,6 +261,7 @@ config BR2_sparc64
 
 config BR2_x86_64
 	bool "x86_64"
+	select BR2_ARCH_HAS_TOOLCHAIN_BUILDROOT_LLVM
 	select BR2_ARCH_IS_64
 	select BR2_USE_MMU
 	help
@@ -286,6 +289,10 @@ config BR2_ARCH_HAS_NO_TOOLCHAIN_BUILDROOT
 config BR2_ARCH_HAS_TOOLCHAIN_BUILDROOT
 	bool
 	default y if !BR2_ARCH_HAS_NO_TOOLCHAIN_BUILDROOT
+
+# Selected by architectures that support the LLVM internal toolchain.
+config BR2_ARCH_HAS_TOOLCHAIN_BUILDROOT_LLVM
+	bool
 
 # The following symbols are selected by the individual
 # Config.in.$ARCH files
