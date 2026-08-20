@@ -21,11 +21,45 @@ config BR2_TOOLCHAIN_BUILDROOT_VENDOR
 	  If you're not sure, just leave the default "buildroot" value.
 
 choice
+	prompt "Toolchain type"
+	default BR2_TOOLCHAIN_BUILDROOT_GCC
+
+config BR2_TOOLCHAIN_BUILDROOT_GCC
+	bool "GCC"
+	select BR2_TOOLCHAIN_USES_GCC
+	help
+	  This option selects the Buildroot toolchain based on GCC.
+	  It is the default and most widely used toolchain type.
+
+config BR2_TOOLCHAIN_BUILDROOT_LLVM
+	bool "LLVM"
+	depends on BR2_ARCH_HAS_TOOLCHAIN_BUILDROOT_LLVM
+	depends on BR2_HOST_GCC_AT_LEAST_7
+	select BR2_TOOLCHAIN_USES_LLVM
+	select BR2_TOOLCHAIN_CLANG_AT_LEAST_22
+	select BR2_INSTALL_LIBSTDCPP
+	select BR2_PACKAGE_MUSL_HEADERS
+	select BR2_PACKAGE_LLVM_RUNTIMES_INITIAL
+	select BR2_PACKAGE_LLVM_RUNTIMES_COMPILER_RT
+	select BR2_PACKAGE_LLVM_RUNTIMES_LIBUNWIND
+	select BR2_PACKAGE_LLVM_RUNTIMES_LIBCXX
+	select BR2_PACKAGE_LLVM_RUNTIMES_LIBCXXABI
+	help
+	  This option selects the LLVM internal toolchain. It uses Clang
+	  as the compiler, LLD as the linker, the LLVM binutils
+	  replacements, and the LLVM runtimes. Architectures enable this
+	  option after their LLVM runtime bootstrap has been validated.
+
+endchoice
+
+choice
 	prompt "C library"
+	default BR2_TOOLCHAIN_BUILDROOT_MUSL if BR2_TOOLCHAIN_BUILDROOT_LLVM
 	default BR2_TOOLCHAIN_BUILDROOT_GLIBC
 
 config BR2_TOOLCHAIN_BUILDROOT_UCLIBC
 	bool "uClibc-ng"
+	depends on BR2_TOOLCHAIN_BUILDROOT_GCC
 	depends on BR2_PACKAGE_UCLIBC_SUPPORTS
 	select BR2_TOOLCHAIN_USES_UCLIBC
 	help
@@ -36,6 +70,7 @@ config BR2_TOOLCHAIN_BUILDROOT_UCLIBC
 
 config BR2_TOOLCHAIN_BUILDROOT_GLIBC
 	bool "glibc"
+	depends on BR2_TOOLCHAIN_BUILDROOT_GCC
 	depends on BR2_PACKAGE_GLIBC_SUPPORTS
 	select BR2_TOOLCHAIN_USES_GLIBC
 	help
@@ -113,7 +148,9 @@ source "package/linux-headers/Config.in"
 source "package/musl/Config.in"
 source "package/uclibc/Config.in"
 source "package/glibc/Config.in"
+if BR2_TOOLCHAIN_BUILDROOT_GCC
 source "package/binutils/Config.in.host"
 source "package/gcc/Config.in.host"
 source "package/gcc/Config.in"
+endif
 endif

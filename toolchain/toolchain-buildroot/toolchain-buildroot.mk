@@ -10,7 +10,13 @@ BR_LIBC = $(call qstrip,$(BR2_TOOLCHAIN_BUILDROOT_LIBC))
 # build of binutils, uClibc, kernel headers and all the intermediate
 # gcc steps.
 
-TOOLCHAIN_BUILDROOT_DEPENDENCIES = gcc-final
+TOOLCHAIN_BUILDROOT_DEPENDENCIES =
+ifeq ($(BR2_TOOLCHAIN_BUILDROOT_GCC),y)
+TOOLCHAIN_BUILDROOT_DEPENDENCIES += gcc-final
+endif
+ifeq ($(BR2_TOOLCHAIN_BUILDROOT_LLVM),y)
+TOOLCHAIN_BUILDROOT_DEPENDENCIES += host-clang host-lld llvm-runtimes
+endif
 
 TOOLCHAIN_BUILDROOT_ADD_TOOLCHAIN_DEPENDENCY = NO
 
